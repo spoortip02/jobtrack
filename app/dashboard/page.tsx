@@ -37,12 +37,47 @@ const statusOptions: Status[] = [
   "GHOSTED",
 ];
 
+function statusBadgeClass(status: Status) {
+ 
+  switch (status) {
+    case "OFFER":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "ONSITE":
+    case "PHONE":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    case "OA":
+      return "bg-purple-100 text-purple-800 border-purple-200";
+    case "APPLIED":
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+    case "REJECTED":
+      return "bg-red-100 text-red-800 border-red-200";
+    case "GHOSTED":
+      return "bg-gray-100 text-gray-800 border-gray-200";
+    case "SAVED":
+    default:
+      return "bg-zinc-100 text-zinc-800 border-zinc-200";
+  }
+}
+
+function fmtDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+}
+
 export default function DashboardPage() {
   const [applications, setApplications] = useState<AppItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
   const [filter, setFilter] = useState<Status | "ALL">("ALL");
+  const [query, setQuery] = useState("");
   const [form, setForm] = useState({
     company: "",
     roleTitle: "",
@@ -54,9 +89,17 @@ export default function DashboardPage() {
   });
 
   const filtered = useMemo(() => {
-    if (filter === "ALL") return applications;
-    return applications.filter((a) => a.status === filter);
-  }, [applications, filter]);
+    const q = query.trim().toLowerCase();
+    return applications.filter((a) => {
+      const statusOk = filter === "ALL" ? true : a.status === filter;
+      const searchOk =
+        !q ||
+        a.company.toLowerCase().includes(q) ||
+        a.roleTitle.toLowerCase().includes(q) ||
+        (a.location || "").toLowerCase().includes(q);
+      return statusOk && searchOk;
+    });
+  }, [applications, filter, query]);
 
   async function loadApps() {
     setErr(null);
@@ -152,20 +195,22 @@ export default function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-10">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">JobTrack Dashboard</h1>
           <p className="mt-1 text-gray-600">
-            Track applications by stage (Saved → Applied → OA → Phone → Onsite → Offer).
+            Track applications across stages: Saved → Applied → OA → Phone → Onsite → Offer.
           </p>
         </div>
 
-        <button
-          onClick={loadApps}
-          className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
-        >
-          Refresh
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={loadApps}
+            className="rounded border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Refresh
+          </button>
+        </div>
       </div>
 
       {err && (
@@ -177,7 +222,10 @@ export default function DashboardPage() {
       <section className="mt-8 grid gap-6 lg:grid-cols-2">
         {/* Create */}
         <form onSubmit={createApp} className="rounded border p-4">
-          <h2 className="font-semibold">Add application</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">Add application</h2>
+            <span className="text-xs text-gray-500">* required</span>
+          </div>
 
           <div className="mt-4 grid gap-3">
             <input
@@ -247,45 +295,69 @@ export default function DashboardPage() {
 
         {/* List */}
         <div className="rounded border p-4">
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="font-semibold">Applications</h2>
 
-            <select
-              className="border rounded px-2 py-2 text-sm"
-              value={filter}
-              onChange={(e) => setFilter(e.target.value as any)}
-            >
-              <option value="ALL">All</option>
-              {statusOptions.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input
+                className="border rounded px-3 py-2 text-sm"
+                placeholder="Search company / role..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <select
+                className="border rounded px-2 py-2 text-sm"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value as any)}
+              >
+                <option value="ALL">All</option>
+                {statusOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {loading ? (
             <p className="mt-4 text-sm text-gray-600">Loading…</p>
           ) : filtered.length === 0 ? (
-            <p className="mt-4 text-sm text-gray-600">No applications yet.</p>
+            <div className="mt-6 rounded border bg-gray-50 p-4 text-sm text-gray-700">
+              <p className="font-medium">No applications yet.</p>
+              <p className="mt-1 text-gray-600">
+                Add your first one on the left. Then update stages as you progress.
+              </p>
+            </div>
           ) : (
             <ul className="mt-4 space-y-3">
               {filtered.map((a) => (
                 <li key={a.id} className="rounded border p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="font-semibold truncate">
-                        {a.company} — {a.roleTitle}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold truncate">
+                          {a.company} — {a.roleTitle}
+                        </p>
+                        <span
+                          className={`text-xs border rounded-full px-2 py-0.5 ${statusBadgeClass(
+                            a.status
+                          )}`}
+                        >
+                          {a.status}
+                        </span>
+                      </div>
 
-                      <p className="text-sm text-gray-600">
-                        {a.location || "No location"}{" "}
-                        {a.salaryRange ? `• ${a.salaryRange}` : ""}
+                      <p className="mt-1 text-sm text-gray-600">
+                        {a.location || "No location"}
+                        {a.salaryRange ? ` • ${a.salaryRange}` : ""}
+                        {" • "}
+                        Created {fmtDate(a.createdAt)}
                       </p>
 
                       {a.url && (
                         <a
-                          className="text-sm underline break-all"
+                          className="mt-1 inline-block text-sm underline break-all"
                           href={a.url}
                           target="_blank"
                           rel="noreferrer"
