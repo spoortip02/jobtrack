@@ -62,7 +62,28 @@ The app follows a clean separation between UI, API logic, and database access, s
 
 ##  Getting Started (Local Setup)
 
-### 1. Clone the repository
+1. Clone the Repository
 ```bash
 git clone https://github.com/your-username/jobtrack.git
 cd jobtrack
+
+2. Install dependencies
+npm install
+
+3. Environment variables
+
+Create a .env file in the project root:
+
+DATABASE_URL="file:./dev.db"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-secret-key"
+
+4. Set up the database
+npx prisma migrate dev
+npx prisma generate
+
+5. Run the app
+npm run dev
+
+
+Visit http://localhost:3000 in your browser.
