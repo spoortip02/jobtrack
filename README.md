@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# JobTrack — Full-Stack Job Application Tracker
 
-## Getting Started
+JobTrack is a full-stack web application that helps users track job applications across different stages of the hiring pipeline — from saving roles to receiving offers.
 
-First, run the development server:
+This project was built to demonstrate real-world full-stack development skills, including authentication, database design, API development, and modern UI patterns.
 
+---
+
+##  Features
+
+- User registration and login with secure password hashing
+- Session-based authentication using NextAuth
+- Protected dashboard (only accessible to logged-in users)
+- Create, view, update, and delete job applications
+- Track application status across stages:
+  - SAVED → APPLIED → OA → PHONE → ONSITE → OFFER / REJECTED / GHOSTED
+- Search and filter applications by company, role, and status
+- Automatically records the date when an application is marked as APPLIED
+- Clean, responsive dashboard UI with modals, badges, and stats
+
+---
+
+##  Tech Stack
+
+**Frontend**
+- Next.js (App Router)
+- React
+- Tailwind CSS
+
+**Backend**
+- Next.js Route Handlers (API routes)
+- Prisma ORM
+- SQLite (local development)
+
+**Authentication & Security**
+- NextAuth (Credentials Provider)
+- bcrypt for password hashing
+- Server-side validation with Zod
+
+---
+
+##  Architecture Overview
+
+- `app/` — Pages and API route handlers (App Router)
+- `app/api/` — Backend endpoints for auth and job applications
+- `lib/` — Prisma client, auth configuration, and validation schemas
+- `prisma/` — Database schema and migrations
+
+The app follows a clean separation between UI, API logic, and database access, similar to production-grade Next.js applications.
+
+---
+
+##  Key Implementation Details
+
+- Passwords are never stored in plaintext (bcrypt hashing)
+- All job applications are scoped to the authenticated user
+- Server-side validation prevents invalid or malicious input
+- Prisma migrations ensure consistent database schema
+- Status updates are handled through RESTful PATCH endpoints
+
+---
+
+##  Getting Started (Local Setup)
+
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+git clone https://github.com/your-username/jobtrack.git
+cd jobtrack
